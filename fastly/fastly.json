@@ -1,0 +1,370 @@
+{
+  "version": "1.0.1",
+  "configType": "TABBED",
+  "description": "Fastly CDN overview converted to SentinelOne OCSF format.",
+  "tabs": [
+    {
+      "tabName": "Overview",
+      "graphs": [
+        {
+          "title": "Overview Header",
+          "graphStyle": "markdown",
+          "markdown": "# Fastly CDN Overview\nMetrics regarding cache performance, error rates, and volume.",
+          "layout": {
+            "h": 7,
+            "w": 20,
+            "x": 0,
+            "y": 0
+          }
+        },
+        {
+          "title": "Cache Hit Ratio",
+          "graphStyle": "number",
+          "query": "dataSource.name == 'Fastly' | group hits = count(cache_status == 'HIT'), total = count() | let value = total > 0 ? (hits * 100.0 / total) : 0 | columns value",
+          "sparklineConfig": {
+            "enabled": false
+          },
+          "layout": {
+            "h": 7,
+            "w": 20,
+            "x": 20,
+            "y": 0
+          }
+        },
+        {
+          "title": "Success Rate (2xx, 3xx)",
+          "graphStyle": "number",
+          "query": "dataSource.name == 'Fastly' | group success = count(http_response.status_code >= 200 && http_response.status_code < 400), total = count() | let value = (success / total) * 100 | columns value",
+          "sparklineConfig": {
+            "enabled": false
+          },
+          "layout": {
+            "h": 7,
+            "w": 20,
+            "x": 40,
+            "y": 0
+          }
+        },
+        {
+          "title": "Error Rate (4xx)",
+          "graphStyle": "number",
+          "query": "dataSource.name == 'Fastly' | group errors = count(http_response.status_code >= 400 && http_response.status_code < 500), total = count() | let value = (errors / total) * 100 | columns value",
+          "sparklineConfig": {
+            "enabled": false
+          },
+          "layout": {
+            "h": 7,
+            "w": 20,
+            "x": 0,
+            "y": 7
+          }
+        },
+        {
+          "title": "Error Rate (5xx)",
+          "graphStyle": "number",
+          "query": "dataSource.name == 'Fastly' | group errors = count(http_response.status_code >= 500 && http_response.status_code < 600), total = count() | let value = total > 0 ? (errors * 100.0 / total) : 0 | columns value",
+          "sparklineConfig": {
+            "enabled": false
+          },
+          "layout": {
+            "h": 7,
+            "w": 20,
+            "x": 20,
+            "y": 7
+          }
+        },
+        {
+          "title": "Cache Hit/Miss (Over Time)",
+          "graphStyle": "line",
+          "query": "dataSource.name == 'Fastly' | filter cache_status in ('HIT','MISS') | group count() by timestamp = timebucket('5m'), cache_status",
+          "lineSmoothing": "straightLines",
+          "plotNulls": "gaps",
+          "layout": {
+            "h": 7,
+            "w": 20,
+            "x": 40,
+            "y": 7
+          }
+        },
+        {
+          "title": "HTTP Status Code Distribution",
+          "graphStyle": "donut",
+          "query": "dataSource.name == 'Fastly' | group count() by http_response.status_code",
+          "dataLabelType": "PERCENTAGE",
+          "maxPieSlices": 10,
+          "layout": {
+            "h": 14,
+            "w": 31,
+            "x": 0,
+            "y": 14
+          },
+          "totalNumberConfig": {
+            "enabled": false,
+            "label": ""
+          }
+        },
+        {
+          "title": "Total Requests (Over Time)",
+          "graphStyle": "stacked",
+          "query": "dataSource.name == 'Fastly' | group count() by timestamp = timebucket('5m')",
+          "lineSmoothing": "straightLines",
+          "layout": {
+            "h": 14,
+            "w": 29,
+            "x": 31,
+            "y": 28
+          }
+        },
+        {
+          "title": "Edge Response Type (Non-Standard)",
+          "graphStyle": "line",
+          "query": "dataSource.name == 'Fastly' | filter !isempty(http_response.cache_status) && http_response.cache_status != 'HIT' && http_response.cache_status != 'MISS' | group requests = count() by http_response.cache_status, timestamp = timebucket('5m') | transpose http_response.cache_status on timestamp",
+          "lineSmoothing": "straightLines",
+          "plotNulls": "gaps",
+          "layout": {
+            "h": 14,
+            "w": 60,
+            "x": 0,
+            "y": 42
+          }
+        },
+        {
+          "title": "Requests by Status Code (Over Time)",
+          "graphStyle": "line",
+          "query": "dataSource.name == 'Fastly' | group count() by timestamp = timebucket('5m'), http_response.status_code",
+          "lineSmoothing": "straightLines",
+          "plotNulls": "gaps",
+          "layout": {
+            "h": 14,
+            "w": 31,
+            "x": 0,
+            "y": 28
+          }
+        },
+        {
+          "title": "Total Bandwidth (Estimated MB)",
+          "graphStyle": "line",
+          "query": "dataSource.name == 'Fastly' | group bytes = sum(number(network.bytes_in) + number(network.bytes_out)) by timestamp = timebucket('5m') | let MB = bytes / 1048576.0 | columns timestamp, MB",
+          "lineSmoothing": "straightLines",
+          "layout": {
+            "h": 14,
+            "w": 60,
+            "x": 0,
+            "y": 56
+          }
+        },
+        {
+          "title": "HTTP Status Group Distribution",
+          "graphStyle": "pie",
+          "query": "dataSource.name == 'Fastly' | let status_group = http_response.status_code >= 200 && http_response.status_code < 300 ? '2xx' : http_response.status_code >= 300 && http_response.status_code < 400 ? '3xx' : http_response.status_code >= 400 && http_response.status_code < 500 ? '4xx' : http_response.status_code >= 500 && http_response.status_code < 600 ? '5xx' : 'Other' | group count() by status_group",
+          "dataLabelType": "PERCENTAGE",
+          "layout": {
+            "h": 14,
+            "w": 29,
+            "x": 31,
+            "y": 14
+          }
+        },
+        {
+          "title": "Latest Logs",
+          "graphStyle": "table",
+          "query": "dataSource.name == 'Fastly' | limit 100 | columns timestamp, src_endpoint.ip, http_request.user_agent, http_request.http_method, http_response.status_code, http_request.url.path, http_response.cache_status, cloud.region",
+          "layout": {
+            "h": 14,
+            "w": 60,
+            "x": 0,
+            "y": 70
+          }
+        }
+      ],
+      "options": {
+        "layout": {
+          "columns": 3
+        }
+      },
+      "options": {
+        "layout": {
+          "columns": 3
+        }
+      },
+      "options": {
+        "layout": {
+          "columns": 3,
+          "locked": 1
+        }
+      },
+      "options": {
+        "layout": {
+          "columns": 3,
+          "locked": 0
+        }
+      },
+      "options": {
+        "layout": {
+          "columns": 3,
+          "locked": 1
+        }
+      }
+    },
+    {
+      "tabName": "Client Info",
+      "graphs": [
+        {
+          "title": "Client Info Header",
+          "graphStyle": "markdown",
+          "markdown": "# Client Information\nDetails regarding GeoIP, User Agents, and Client IPs.",
+          "layout": {
+            "h": 7,
+            "w": 60,
+            "x": 0,
+            "y": 0
+          }
+        },
+        {
+          "title": "Requests by Edge Location",
+          "graphStyle": "donut",
+          "query": "dataSource.name == 'Fastly' | group count() by cloud.region",
+          "dataLabelType": "PERCENTAGE",
+          "layout": {
+            "h": 14,
+            "w": 30,
+            "x": 30,
+            "y": 7
+          }
+        },
+        {
+          "title": "Requests by Client Country",
+          "graphStyle": "pie",
+          "query": "dataSource.name == 'Fastly' | group count() by src_endpoint.location.country",
+          "dataLabelType": "PERCENTAGE",
+          "layout": {
+            "h": 14,
+            "w": 30,
+            "x": 0,
+            "y": 7
+          }
+        },
+        {
+          "title": "Requests by Client IP",
+          "graphStyle": "table",
+          "query": "dataSource.name == 'Fastly' | group Requests = count() by src_endpoint.ip | sort -Requests | limit 100",
+          "layout": {
+            "h": 14,
+            "w": 30,
+            "x": 0,
+            "y": 21
+          }
+        },
+        {
+          "title": "Top 10 URIs (2xx, 3xx)",
+          "graphStyle": "table",
+          "query": "dataSource.name == 'Fastly' | filter http_response.status_code >= 200 && http_response.status_code < 400 | group hits = count() by http_request.url.path, http_response.status_code | sort -hits | limit 10 | columns http_request.url.path, http_response.status_code, hits",
+          "layout": {
+            "h": 14,
+            "w": 30,
+            "x": 30,
+            "y": 35
+          }
+        },
+        {
+          "title": "Top 10 URIs (Errors)",
+          "graphStyle": "table",
+          "query": "dataSource.name == 'Fastly' | let status = number(http_response.status_code) | filter status >= 400 | group hits = count() by http_request.url.path, status | sort -hits | limit 10 | columns http_request.url.path, status, hits",
+          "layout": {
+            "h": 14,
+            "w": 30,
+            "x": 30,
+            "y": 21
+          }
+        },
+        {
+          "title": "Requests by User Agent",
+          "graphStyle": "table",
+          "query": "dataSource.name == 'Fastly' | group requests = count() by http_request.user_agent | sort -requests | columns http_request.user_agent, requests",
+          "layout": {
+            "h": 14,
+            "w": 30,
+            "x": 0,
+            "y": 35
+          }
+        }
+      ],
+      "options": {
+        "layout": {
+          "columns": 3
+        }
+      },
+      "options": {
+        "layout": {
+          "columns": 3,
+          "locked": 1
+        }
+      }
+    },
+    {
+      "tabName": "Performance",
+      "graphs": [
+        {
+          "title": "Performance Header",
+          "graphStyle": "markdown",
+          "markdown": "# Performance\nLatency and Bandwidth metrics.",
+          "layout": {
+            "h": 14,
+            "w": 30,
+            "x": 0,
+            "y": 0
+          }
+        },
+        {
+          "title": "Latency (Avg vs 90th)",
+          "graphStyle": "line",
+          "query": "dataSource.name == 'Fastly' | group avg_ms = avg(duration), p90_ms = p90(duration) by timestamp = timebucket('5m')",
+          "lineSmoothing": "straightLines",
+          "plotNulls": "gaps",
+          "layout": {
+            "h": 14,
+            "w": 30,
+            "x": 30,
+            "y": 14
+          }
+        },
+        {
+          "title": "Top 10 Datacenters by Bandwidth (MB)",
+          "graphStyle": "donut",
+          "query": "dataSource.name == 'Fastly' | let bytes = number(network.bytes_in) + number(network.bytes_out) | group MB = sum(bytes) / 1048576.0 by cloud.region | sort -MB | limit 10",
+          "layout": {
+            "h": 14,
+            "w": 30,
+            "x": 30,
+            "y": 0
+          },
+          "dataLabelType": "PERCENTAGE"
+        },
+        {
+          "title": "Latency by Status Code (Avg)",
+          "graphStyle": "line",
+          "query": "dataSource.name == 'Fastly' | group avg_ms = avg(duration) by timestamp = timebucket('5m'), http_response.status_code | transpose http_response.status_code on timestamp",
+          "lineSmoothing": "straightLines",
+          "plotNulls": "gaps",
+          "layout": {
+            "h": 14,
+            "w": 30,
+            "x": 0,
+            "y": 14
+          }
+        }
+      ],
+      "options": {
+        "layout": {
+          "columns": 3
+        }
+      },
+      "options": {
+        "layout": {
+          "columns": 3,
+          "locked": 1
+        }
+      }
+    }
+  ]
+}
